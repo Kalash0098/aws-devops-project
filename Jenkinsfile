@@ -4,7 +4,6 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "kalash655/aws-devops-project"
-        DOCKER_TAG = "2"
     }
 
     stages {
@@ -19,7 +18,7 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                    -t ${DOCKER_IMAGE}:${DOCKER_TAG} \
+                    -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
                     -t ${DOCKER_IMAGE}:latest .
                 '''
             }
@@ -47,7 +46,7 @@ pipeline {
                         -u "$DOCKER_USERNAME" \
                         --password-stdin
 
-                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
                         docker push ${DOCKER_IMAGE}:latest
 
                         docker logout
@@ -61,6 +60,11 @@ pipeline {
                 sh '''
                     kubectl apply -f k8s/deployment.yaml
                     kubectl apply -f k8s/service.yaml
+
+                    kubectl set image deployment/aws-devops-app \
+                    aws-devops-app=${DOCKER_IMAGE}:${BUILD_NUMBER}
+
+                    kubectl rollout status deployment/aws-devops-app
                 '''
             }
         }
@@ -69,7 +73,7 @@ pipeline {
             steps {
                 sh '''
                     kubectl get deployments
-                    kubectl get pods
+                    kubectl get pods -o wide
                     kubectl get services
                 '''
             }
