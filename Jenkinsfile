@@ -14,6 +14,12 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                sh 'python3 -m pytest'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh '''
@@ -24,7 +30,7 @@ pipeline {
             }
         }
 
-        stage('Verify Docker Image') {
+        stage('Verify Docker Image') { 
             steps {
                 sh '''
                     docker images ${DOCKER_IMAGE}
